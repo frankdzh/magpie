@@ -974,6 +974,12 @@ func nativeEndpoints(e provider.Entry) []string {
 // which an agent's list never has, so it takes none for a model to chat
 // with. A gateway key held to some models is told of those alone, as its
 // chat list is: models it names that an account it may use serves (#2579).
+//
+// "output_modalities" restates the private "kind"/"modalities" pair in the
+// field OpenAI-compatible clients read to tell a runner from a chat model,
+// so their image pickers see these models without a hand-written list. It
+// never names text: a row that advertises text output is a chat model to
+// those readers.
 func drawerObjects(r *http.Request) []map[string]any {
 	who, held := keyHolds(r)
 	var out []map[string]any
@@ -988,7 +994,8 @@ func drawerObjects(r *http.Request) []map[string]any {
 			name := cmp.Or(m.Name, m.ID)
 			o := map[string]any{"id": p.ID + "/" + m.ID, "object": "model", "type": "model", "kind": "image", "created": 0,
 				"owned_by": p.ID, "display_name": name, "magpie_label": name + " · " + p.Name,
-				"modalities": map[string]any{"input": []string{"text"}, "output": []string{"image"}}}
+				"output_modalities": []string{"image"},
+				"modalities":        map[string]any{"input": []string{"text"}, "output": []string{"image"}}}
 			if m.Images {
 				o["modalities"] = map[string]any{"input": []string{"text", "image"}, "output": []string{"image"}}
 			}
